@@ -39,14 +39,14 @@ def numpy_order_revenues(quantities: np.ndarray, unit_prices: np.ndarray) -> np.
 
     Must be a vectorized operation - no Python-level for loop.
     """
+    # TODO: replace the line below
     return quantities * unit_prices
 
 
 def numpy_average_order_value(quantities: np.ndarray, unit_prices: np.ndarray) -> float:
     """Return the average revenue across all orders, as a plain float."""
     # TODO: reuse numpy_order_revenues() and take its mean
-    return np.mean(numpy_order_revenues(quantities, unit_prices))
-    raise NotImplementedError
+    return float (np.mean(numpy_order_revenues(quantities, unit_prices)))
 
 
 # ---------------------------------------------------------------------------
@@ -59,7 +59,10 @@ def pandas_revenue_by_region(sales: pd.DataFrame) -> pd.DataFrame:
     """
     
     # TODO: add a revenue column, then group by region and sum it
-    raise NotImplementedError
+    df = sales.copy()
+    df["revenue"] = df["quantity"] * df["unit_price"]
+    result = df.groupby("region", as_index=False)["revenue"].sum()
+    return result
 
 
 def pandas_region_share(sales: pd.DataFrame) -> pd.DataFrame:
@@ -71,7 +74,10 @@ def pandas_region_share(sales: pd.DataFrame) -> pd.DataFrame:
     with the grand total (rather than hand-computing division in a loop).
     """
     # TODO
-    raise NotImplementedError
+    reference_df = pandas_revenue_by_region(sales)
+    total_revenue = reference_df["revenue"].sum()
+    reference_df["share"] = reference_df["revenue"] / total_revenue
+    return reference_df
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +103,17 @@ def sql_revenue_by_region(csv_path: Path) -> pd.DataFrame:
     #         """,
     #         connection,
     #     )
-    raise NotImplementedError
+    sales = pd.read_csv(csv_path)
+    with sqlite3.connect(":memory:") as connection:
+        sales.to_sql("sales", connection, index=False, if_exists="replace")
+        return pd.read_sql(
+            """
+            SELECT region, SUM(quantity * unit_price) AS revenue
+            FROM sales
+            GROUP BY region
+            """,
+            connection,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +124,8 @@ def check_torch_installed() -> float:
     and return the sum of its elements as a plain float.
     """
     # TODO
-    raise NotImplementedError
+    tensor = torch.tensor([1.0, 2.0, 3.0])
+    return float(torch.sum(tensor))
 
 
 if __name__ == "__main__":
